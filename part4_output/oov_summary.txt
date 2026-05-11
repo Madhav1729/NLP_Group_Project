@@ -1,0 +1,36 @@
+Queries with >=1 OOV token after preprocessing: 46/225 (20.4%)
+
+Most frequent OOV tokens (across queries):
+  anyon                16
+  interference-fre     2
+  low-blockag          2
+  non-circular         2
+  non                  2
+  /slip                1
+  shock-sound          1
+  els                  1
+  validli              1
+  magneticfield        1
+  ca                   1
+  trust                1
+  merged-lay           1
+  off-centr            1
+  multhopp             1
+  closely-rel          1
+  stop                 1
+  stabilityproblem     1
+  /boat-tail/          1
+  fin-bodi             1
+  unnecessarili        1
+  time-to-failur       1
+  virtu                1
+  orthodox             1
+  formerli             1
+  wildli               1
+  small-oscil          1
+  long-hand            1
+  pre-buckl            1
+  wing-flutt           1
+  empti                1
+  realiti              1
+  non-visc             1

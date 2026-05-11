@@ -1,0 +1,6 @@
+n_docs: 1400
+min_len: 0
+max_len: 426
+mean_len: 106.54428571428572
+median_len: 95
+empty_docs: [471, 995]

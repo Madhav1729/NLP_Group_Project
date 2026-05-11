@@ -1,0 +1,258 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\title{NLP Project --- Part 4: Analysis of the TF-IDF VSM Baseline}
+\author{Soham Shah (ME22B191)}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Setup and reproduction of baseline metrics}
+
+The baseline uses the pipeline already implemented in Parts 2--3: Punkt
+sentence segmentation, Penn-Treebank tokenization, Porter stemming, NLTK
+English stop-word removal, then a TF--IDF inverted index with cosine ranking.
+Running the full evaluation on the 225 Cranfield queries reproduces the
+numbers cited in Table~\ref{tab:baseline}. We use these as the reference
+point for the failure analysis that follows.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{cccccc}
+\toprule
+$k$ & P@$k$ & R@$k$ & F$_{0.5}$@$k$ & AP@$k$ & nDCG@$k$ \\
+\midrule
+1  & 0.6489 & 0.1092 & 0.3034 & 0.1092 & 0.6489 \\
+3  & 0.4859 & 0.2287 & 0.3672 & 0.2108 & 0.5237 \\
+5  & 0.3858 & 0.2884 & 0.3388 & 0.2488 & 0.4711 \\
+10 & 0.2836 & 0.4100 & 0.2892 & 0.3026 & 0.4636 \\
+\bottomrule
+\end{tabular}
+\caption{TF--IDF VSM baseline on Cranfield (mean across 225 queries).
+The full table for $k=1\ldots 10$ is in
+\texttt{part4\_output/aggregate\_metrics.csv}.}
+\label{tab:baseline}
+\end{table}
+
+Two observations from preprocessing diagnostics frame the rest of the
+analysis. First, 46 of 225 queries (20.4\%) contain at least one token that
+does not appear in the index after preprocessing. Second, two documents
+(IDs 471 and 995) are empty after stop-word removal and are therefore
+unreachable. Both are direct artefacts of the bag-of-words representation.
+
+\section{Failure mode analysis}
+
+We partition the failing queries into three structurally distinct modes.
+For each mode we explain the structural cause in the VSM, give two or three
+concrete query examples taken from the diagnostics in
+\texttt{part4\_output/per\_query\_diagnostics.csv}, and compare against the
+three Part--5 systems (BM25, LSA at $k=300$, WordNet Query Expansion) to
+test whether the mode is fixable.
+
+\subsection{Mode 1 --- Vocabulary mismatch (synonymy)}
+
+\textbf{Cause.} Cosine similarity over a TF--IDF vocabulary scores documents
+purely by surface token overlap. When a query and a relevant document
+describe the same concept with different surface vocabulary --- a true
+synonymy gap --- the VSM has no representation to bridge them.
+
+\textbf{Query 12} --- ``how can the aerodynamic performance of channel flow
+ground effect machines be calculated.''
+(P@10 = 0.10, $n_{\text{rel}}=6$, first relevant at rank 10.) The query
+phrase \emph{ground effect machines} is a 1960s term for what the Cranfield
+documents call \emph{hovercraft} and \emph{peripheral jets}. The top
+retrieved documents (Doc 941, Doc 1221, Doc 270) match on the generic
+\emph{channel flow} tokens. The missed relevant Doc 86 (\emph{inviscid-%
+incompressible flow theory of static peripheral jets}) and Doc 649
+(\emph{The hovercraft --- a new concept in maritime transport}) use no
+overlapping surface tokens with the query and are invisible to the VSM.
+
+\textbf{Query 30} --- ``papers on flow visualization on slender conical
+wings.'' (P@10 = 0.10, $n_{\text{rel}}=8$, first relevant at rank 6.) The
+relevant papers describe the same idea using \emph{vapour screen method},
+\emph{flow studies}, and \emph{flow patterns} rather than \emph{flow
+visualization}. A particularly diagnostic case is Doc 633, which appears in
+the top retrieved set without being relevant: it is a theoretical paper on
+\emph{generalised conical flows} that shares \emph{flow}, \emph{conical},
+and \emph{wings} tokens with the query but is a pure theory paper not
+about visualization. This is the false-positive flip side of Mode 1 ---
+surface overlap pulling in apparently relevant but actually unrelated
+papers.
+
+\textbf{Part--5 comparison.} LSA closes the synonymy gap most reliably
+because it projects documents and queries into a shared latent space where
+\emph{hovercraft} and \emph{ground effect machines} co-occur in training
+contexts. BM25 cannot fix Mode 1 because its TF saturation does not
+introduce new vocabulary mappings. WordNet QE helps only when the
+synonym pair happens to be in WordNet (it is not, for the aerospace jargon
+above).
+
+\subsection{Mode 2 --- Term importance beyond TF--IDF}
+
+\textbf{Cause.} The VSM assigns each query token exactly one weight: its
+IDF. Every content token contributes positively to the cosine score with
+any document that contains it. There is no representation of (a)
+\emph{negation}, (b) \emph{question focus} --- which token is the topic
+versus scaffolding, or (c) \emph{constraint scope} --- which token is a
+modifier limiting the query. IDF reweighting cannot fix this because it
+operates on token identity, not on linguistic role.
+
+\textbf{Query 22 --- negation.} ``did anyone else discover that the
+turbulent skin friction is \textbf{not} over sensitive to the nature of the
+variation of the viscosity with temperature.'' (P@10 = 0.00,
+$n_{\text{rel}}=2$, first relevant at rank 970.) The query asserts an
+\emph{insensitivity} result. The VSM treats \emph{sensitive},
+\emph{viscosity}, \emph{temperature}, \emph{skin}, \emph{friction} as
+positive match signals and retrieves Doc 254 and Doc 125 ---- generic
+skin-friction papers, exactly the affirmative version of the query. The
+two relevant documents (Doc 68 on air-helium simulation, Doc 502 on
+Squire's compressibility transformation) describe the actual insensitivity
+finding using entirely different surface vocabulary and are missed.
+
+\textbf{Query 176 --- exclusion.} ``some approximate analytical heat
+conduction solutions using methods \textbf{other than} Biot's principle.''
+(P@10 = 0.10.) The exclusion marker \emph{other than} is invisible to the
+VSM. Because \emph{Biot} has high IDF, Doc 542 \emph{Biot's variational
+principle in heat conduction} --- the paper the query explicitly tries to
+exclude --- is retrieved at rank 2. Doc 582 (\emph{the melting of finite
+slabs}, which uses the heat-balance integral, a genuinely different method)
+is missed.
+
+\textbf{Query 151 --- focus drift.} ``what is the best theoretical method
+for calculating pressure on the surface of a wing \textbf{alone}.''
+(P@10 = 0.00, first relevant at rank 19.) The constraint \emph{wing alone}
+(as opposed to wing-body) is the substantive content. The system locks on
+to \emph{wing} (IDF = 1.87, present in all five non-relevant top
+documents) and retrieves generic wing papers (Doc 433, Doc 251, Doc 678).
+The relevant papers (Docs 687, 1062, 1074--1077) all share
+\emph{theoretical} but the VSM weighting cannot identify \emph{theoretical
+method} as the question's focus.
+
+\textbf{Query 63 --- scaffolding.} ``where can I \textbf{find} pressure
+data on surfaces of swept cylinders.'' (P@10 = 0.00.) The query-asking
+verb \emph{find} (IDF = 3.72) is matched against Doc 738, \emph{Finding
+zero's of arbitrary functions}, which ranks first. The VSM has no
+syntactic awareness that \emph{find} is scaffolding and \emph{swept
+cylinders} is the topic.
+
+\textbf{Part--5 comparison.} On Q22, all four systems give P@10 = 0.00 (the
+first-relevant rank is 970 for VSM, 1038 for BM25, 139 for LSA, 483 for
+QE); LSA narrows the gap but cannot recover the polarity. On Q176, BM25
+reaches P@10 = 0.30 by saturating the TF of \emph{Biot}, but still ranks
+the excluded Biot paper first --- the exclusion itself is not represented.
+On Q151 only BM25 manages a marginal P@10 = 0.10. On Q63 all four systems
+give P@10 = 0.00. None of BM25 (re-weighted TF), LSA (latent re-projection),
+or WordNet QE (synonym broadening) introduces a role-sensitive mechanism,
+which is consistent with the structural argument: Mode 2 needs syntactic
+or contextual modelling, not term reweighting.
+
+\subsection{Mode 3 --- Out-of-vocabulary query tokens}
+
+\textbf{Cause.} The VSM's IDF table is built from the corpus vocabulary.
+A query token whose stem is absent from this table has no IDF entry and
+is silently dropped from the query vector. When that token is the
+discriminative term of the query, the residual vector is too generic to
+locate the relevant documents. In the Cranfield diagnostics this affects
+46 of 225 queries.
+
+\textbf{Query 207 --- hyphenated compound.} ``how do large changes in new
+mass ratio quantitatively affect \textbf{wing-flutter} boundaries.''
+(P@10 = 0.00, first relevant at rank 59.) After stemming, the compound
+becomes \texttt{wing-flutt}, which appears in zero documents --- the corpus
+consistently writes \emph{wing flutter} as two tokens. The surviving query
+\{large, change, new, mass, ratio, affect, boundary\} is generic; the
+system retrieves boundary-layer papers (Doc 458, Doc 365, Doc 1185) and
+all six relevant flutter papers (Doc 1290, Doc 879, etc.) are missed.
+
+\textbf{Query 117 --- slash-bracketed phrase.} ``is there any information
+on how the addition of a \textbf{/boat-tail/} affects the normal force on
+the body \ldots'' (P@10 = 0.00, first relevant at rank 18.) The Cranfield
+source format wraps some technical phrases in slashes; the Penn-Treebank
+tokenizer treats the leading slash as part of the token. The surface form
+\texttt{/boat-tail/} exists in no document body, where the term appears
+unbracketed. The relevant boat-tail papers (Doc 360, 605, 896) are missed.
+This is a pure preprocessing artefact: query and documents use the same
+word, kept apart by a slash.
+
+\textbf{Query 9 --- same artefact.} ``papers on internal \textbf{/slip
+flow/} heat transfer studies.'' (P@10 = 0.00.) Both \texttt{/slip} and
+\texttt{flow/} are effectively OOV. The query reduces to \{paper,
+internal, heat, transfer, studies\}, which describes a huge fraction of
+the corpus; the obvious relevant papers Doc 550 (\emph{laminar heat
+transfer in tubes under slip-flow conditions}) and Doc 21 (\emph{on heat
+transfer in slip flow}) are missed.
+
+\textbf{Part--5 comparison.} All four systems are essentially unable to
+fix Mode 3. On Q207 first-relevant ranks are 59 (VSM), 35 (BM25), 34
+(LSA), 156 (QE) --- QE actively worsens. On Q117 only QE manages
+P@10 = 0.10. On Q9 all four give P@10 = 0.00. The reason is structural:
+BM25, LSA, and QE all operate on the surviving non-OOV tokens. None
+introduces the missing semantic content. WordNet QE broadens generic
+surviving terms with synonyms, which tends to amplify noise rather than
+recover the missing technical compound. A real fix requires subword
+tokenization or an embedding representation that does not depend on
+exact-token vocabulary.
+
+\section{Comparison with Part--5 systems}
+
+Table~\ref{tab:partfive} reports aggregate metrics at $k=10$ for the four
+systems alongside the paired Wilcoxon signed-rank significance of the
+per-query AP@10 difference against VSM.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lcccccc}
+\toprule
+System & P@10 & R@10 & F$_{0.5}$@10 & MAP@10 & nDCG@10 & Wilcoxon vs.\ VSM \\
+\midrule
+VSM (baseline) & 0.2836 & 0.4100 & 0.2892 & 0.3026 & 0.4636 & --- \\
+BM25 & \textbf{0.2893} & \textbf{0.4168} & \textbf{0.2950} & \textbf{0.3330} & \textbf{0.4926} & $p = 3.9\!\times\!10^{-6}$ \\
+LSA ($k=300$) & 0.2640 & 0.3776 & 0.2687 & 0.2818 & 0.4357 & $p = 3.0\!\times\!10^{-3}$ \\
+WordNet QE & 0.2596 & 0.3812 & 0.2657 & 0.2837 & 0.4344 & $p = 3.2\!\times\!10^{-6}$ \\
+\bottomrule
+\end{tabular}
+\caption{Aggregate performance at $k=10$. Bold marks the best value in
+each column. Wilcoxon $p$-values are computed on the per-query AP@10
+differences against the VSM baseline.}
+\label{tab:partfive}
+\end{table}
+
+The aggregate picture is more nuanced than the failure-mode analysis
+suggests. BM25 is the only system that improves on every aggregate metric;
+its gains are statistically significant. LSA and WordNet QE both
+\emph{worsen} aggregate P@10 against the baseline despite significantly
+different per-query distributions. This is consistent with the per-query
+data: LSA helps strongly on synonymy queries (Mode 1) and slightly on
+focus-drift queries (Mode 2), but introduces noise on queries the VSM
+already answers well, because the latent projection blurs surface
+specificity. WordNet QE has the same problem more acutely: synonym
+expansion adds tokens that broaden recall but more often dilute precision
+than recover missing concepts.
+
+\section{Summary}
+
+The TF--IDF VSM baseline achieves P@10 = 0.284 and nDCG@10 = 0.464 on
+Cranfield. Failure-mode analysis distinguishes three structurally
+different sources of error: synonymy (Mode 1), term-importance
+limitations including negation and focus drift (Mode 2), and OOV tokens
+(Mode 3). The Part--5 systems improve the baseline unevenly: BM25
+delivers a consistent significant improvement across all aggregate
+metrics; LSA addresses Mode 1 but worsens aggregates; WordNet QE
+behaves similarly to LSA in aggregate and helps essentially none of the
+three failure modes consistently. None of the three Part--5 systems
+addresses Mode 2 (which requires syntactic role modelling) or Mode 3
+(which requires subword or embedding representations), bounding what
+this class of improvements can deliver on top of the bag-of-words
+baseline.
+
+\end{document}

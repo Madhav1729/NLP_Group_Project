@@ -1,0 +1,63 @@
+=== Worst by P@10 (ties broken by larger n_relevant) ===
+qid=19   P@10=0.000 R@10=0.000 rank1stRel=16 n_relevant=10 oov=[]
+    does there exist a good basic treatment of the dynamics of re-entry combining consideration of realistic effects with relative simplicity of results .
+qid=152  P@10=0.000 R@10=0.000 rank1stRel=66 n_relevant=7 oov=[]
+    how can the effect of the boundary-layer on wing pressure be calculated, and what is its magnitude .
+qid=62   P@10=0.000 R@10=0.000 rank1stRel=16 n_relevant=6 oov=[]
+    how far around a cylinder and under what conditions of flow, if any, is the velocity just outside of the boundary layer a linear function of the distance around the cylinder .
+qid=75   P@10=0.000 R@10=0.000 rank1stRel=12 n_relevant=6 oov=[]
+    do the discrepancies among current analyses of the vorticity effect on stagnation-point heat transfer result primarily from the differences in the viscosity-temperature law assumed .
+qid=116  P@10=0.000 R@10=0.000 rank1stRel=12 n_relevant=6 oov=[]
+    what is the magnitude and distribution of lift over the cone and the cylindrical portion of a cone-cylinder configuration .
+qid=151  P@10=0.000 R@10=0.000 rank1stRel=19 n_relevant=6 oov=[]
+    what is the best theoretical method for calculating pressure on the surface of a wing alone .
+qid=207  P@10=0.000 R@10=0.000 rank1stRel=59 n_relevant=6 oov=['wing-flutt']
+    how do large changes in new mass ratio quantitatively affect wing-flutter boundaries .
+qid=85   P@10=0.000 R@10=0.000 rank1stRel=41 n_relevant=5 oov=[]
+    what parameters can seriously influence natural transition from laminar to turbulent flow on a model in a wind tunnel .
+qid=115  P@10=0.000 R@10=0.000 rank1stRel=19 n_relevant=5 oov=[]
+    is the problem of similarity for representative investigations of aeroelastic effects in heated flow as intractable as previous investigations imply .
+qid=9    P@10=0.000 R@10=0.000 rank1stRel=37 n_relevant=4 oov=['/slip']
+    papers on internal /slip flow/ heat transfer studies .
+qid=35   P@10=0.000 R@10=0.000 rank1stRel=25 n_relevant=4 oov=[]
+    are there any papers dealing with acoustic wave propagation in reacting gases .
+qid=44   P@10=0.000 R@10=0.000 rank1stRel=781 n_relevant=4 oov=[]
+    what are the details of the rigorous kinetic theory of gases . (chapman-enskog theory) .
+qid=63   P@10=0.000 R@10=0.000 rank1stRel=35 n_relevant=4 oov=[]
+    where can i find pressure data on surfaces of swept cylinders .
+qid=28   P@10=0.000 R@10=0.000 rank1stRel=141 n_relevant=3 oov=[]
+    what application has the linear theory design of curved wings .
+qid=117  P@10=0.000 R@10=0.000 rank1stRel=18 n_relevant=3 oov=['/boat-tail/']
+    is there any information on how the addition of a /boat-tail/ affects the normal force on the body of various angles of incidence .
+
+=== Worst by rank-of-first-relevant ===
+qid=22   rank1stRel=970 P@10=0.000 oov=['anyon', 'els']
+    did anyone else discover that the turbulent skin friction is not over sensitive to the nature of the variation of the viscosity with temperature .
+qid=44   rank1stRel=781 P@10=0.000 oov=[]
+    what are the details of the rigorous kinetic theory of gases . (chapman-enskog theory) .
+qid=216  rank1stRel=232 P@10=0.000 oov=[]
+    what investigations have been made of the wave system created by a static pressure distribution over a liquid surface .
+qid=28   rank1stRel=141 P@10=0.000 oov=[]
+    what application has the linear theory design of curved wings .
+qid=152  rank1stRel=66 P@10=0.000 oov=[]
+    how can the effect of the boundary-layer on wing pressure be calculated, and what is its magnitude .
+qid=207  rank1stRel=59 P@10=0.000 oov=['wing-flutt']
+    how do large changes in new mass ratio quantitatively affect wing-flutter boundaries .
+qid=85   rank1stRel=41 P@10=0.000 oov=[]
+    what parameters can seriously influence natural transition from laminar to turbulent flow on a model in a wind tunnel .
+qid=9    rank1stRel=37 P@10=0.000 oov=['/slip']
+    papers on internal /slip flow/ heat transfer studies .
+qid=63   rank1stRel=35 P@10=0.000 oov=[]
+    where can i find pressure data on surfaces of swept cylinders .
+qid=35   rank1stRel=25 P@10=0.000 oov=[]
+    are there any papers dealing with acoustic wave propagation in reacting gases .
+qid=115  rank1stRel=19 P@10=0.000 oov=[]
+    is the problem of similarity for representative investigations of aeroelastic effects in heated flow as intractable as previous investigations imply .
+qid=151  rank1stRel=19 P@10=0.000 oov=[]
+    what is the best theoretical method for calculating pressure on the surface of a wing alone .
+qid=117  rank1stRel=18 P@10=0.000 oov=['/boat-tail/']
+    is there any information on how the addition of a /boat-tail/ affects the normal force on the body of various angles of incidence .
+qid=19   rank1stRel=16 P@10=0.000 oov=[]
+    does there exist a good basic treatment of the dynamics of re-entry combining consideration of realistic effects with relative simplicity of results .
+qid=62   rank1stRel=16 P@10=0.000 oov=[]
+    how far around a cylinder and under what conditions of flow, if any, is the velocity just outside of the boundary layer a linear function of the distance around the cylinder .

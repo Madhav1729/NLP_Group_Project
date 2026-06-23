@@ -1,7 +1,7 @@
 This folder contains the template code for a search engine application.
+## Project Structure
 
-Project Structure
------------------
+```text
 Cranfield Dataset NLP/
 │
 ├── cranfield/
@@ -17,6 +17,7 @@ Cranfield Dataset NLP/
     ├── inflectionReduction.py
     ├── stopwordRemoval.py
     └── util.py
+```
 
 
 Files Description
